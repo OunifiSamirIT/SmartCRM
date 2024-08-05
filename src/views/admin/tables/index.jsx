@@ -9,6 +9,7 @@ import tableDataDevelopment from "./variables/tableDataDevelopment.json";
 import tableDataCheck from "./variables/tableDataCheck.json";
 import tableDataColumns from "./variables/tableDataColumns.json";
 import tableDataComplex from "./variables/tableDataComplex.json";
+import ComplexTable from "../default/components/ComplexTable";
 
 // import ComplexTable from "./componentscopy/FournisseurTable";
 

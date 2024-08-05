@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Modal from "react-modal";
 import Swal from 'sweetalert2';
 import A from './ai-to-pdf-1024x576.png'
-Modal.setAppElement('#root'); // Or use '#__next' for Next.js
 import "./modal.css"
+
+Modal.setAppElement('#root'); // Or use '#__next' for Next.js
 const ArticleTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -20,7 +20,11 @@ const ArticleTable = () => {
   const [productsByStock, setProductsByStock] = useState({});
   const [stockQuantities, setStockQuantities] = useState({});
   const [productQuantities, setProductQuantities] = useState({});
-  
+  const [file, setFile] = useState(null);
+  const [extractedData, setExtractedData] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [productImagePreview, setProductImagePreview] = useState(null);
+
   const [formData, setFormData] = useState({
     AR_Ref: "",
     AR_Design: "",
@@ -37,7 +41,13 @@ const ArticleTable = () => {
     stockId: '', 
 
   });
-  const [productImagePreview, setProductImagePreview] = useState(null);
+  useEffect(() => {
+    if (file) {
+      setImageUrl(URL.createObjectURL(file));
+    } else if (!imageUrl) {
+      setImageUrl(A);
+    }
+  }, [file]);
   const handleProductImageChange = (e) => {
     const file = e.target.files[0];
     setFormData({
@@ -48,9 +58,7 @@ const ArticleTable = () => {
       setProductImagePreview(URL.createObjectURL(file));
     }
   };
-  const [file, setFile] = useState(null);
-  const [extractedData, setExtractedData] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+  
   useEffect(() => {
     const fetchCategoriesAndFournisseurs = async () => {
       try {
@@ -459,13 +467,7 @@ const ArticleTable = () => {
       console.error("Error fetching stocks:", error);
     }
   };
-  useEffect(() => {
-    if (file) {
-      setImageUrl(URL.createObjectURL(file));
-    } else if (!imageUrl) {
-      setImageUrl(A);
-    }
-  }, [file]);
+ 
   return (
     <div className="h-screen flex flex-col">
     <button className="bg-blue-600 p-4 text-white mt-1 rounded-md" onClick={handleAddClick}>
