@@ -84,13 +84,14 @@ const Navbar = (props) => {
   };
 
   useEffect(() => {
-    const userData = localStorage.getItem("user");
+    // Retrieve the user data from sessionStorage
+    const userData = sessionStorage.getItem('user');
+    console.log('Retrieved user data:', userData); // Debugging output
     if (userData) {
       setUser(JSON.parse(userData));
     }
     fetchStocks()
   }, []);
-
   if (!user) {
     return null; // Or some loading indicator
   }
@@ -312,8 +313,9 @@ const Navbar = (props) => {
           href="/auth/sign-in"
           className="mt-3 text-sm font-medium text-red-500 hover:text-red-500 transition duration-150 ease-out hover:ease-in"
           onClick={() => {
-            localStorage.removeItem("user");
-            localStorage.removeItem("token"); // Remove token from local storage
+            sessionStorage.removeItem("user");
+            sessionStorage.removeItem("token");
+            sessionStorage.removeItem('role') // Remove token from local storage
             window.location.href = "/auth/sign-in"; // Redirect to sign-in page
           }}
         >

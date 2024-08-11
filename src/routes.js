@@ -20,6 +20,7 @@ import RTLDefault from "views/rtl/default";
 
 // Auth Imports
 import SignIn from "views/auth/SignIn";
+import Register from "views/auth/register";
 
 // Icon Imports
 import {
@@ -136,6 +137,13 @@ const routes = [
     path: "sign-in",
     icon: <MdLock className="h-6 w-6" />,
     component: <SignIn />,
+  },
+  {
+    name: "Add USER",
+    layout: "/auth",
+    path: "adduser",
+    icon: <MdLock className="h-6 w-6" />,
+    component: <Register />,
   },
   // {
   //   name: "RTL Admin",
