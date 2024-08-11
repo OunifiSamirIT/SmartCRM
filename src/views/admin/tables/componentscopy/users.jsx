@@ -85,7 +85,10 @@ function Users() {
                 </button>
               ) : (
                 <>
-                 <button onClick={() => handleBlockUser(user.id)}>
+                 <button
+                 className="bg-yellow-500 hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded-lg"
+
+                 onClick={() => handleBlockUser(user.id)}>
   {user.blocked ? 'Unblock' : 'Block'}
 </button>
                   <button
