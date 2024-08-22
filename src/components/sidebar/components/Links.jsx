@@ -28,8 +28,8 @@ export function SidebarLinks(props) {
       if (shouldDisplayRoute) {
         // Role-based route filtering
         if (
-          userRole === "admin" || // Admin sees all routes
-          (userRole === "agent" && (route.path === "Facture" || route.path === "Commande")) || // Agent sees only Facture and Commande
+          (userRole === "admin" && route.path !== "profil") || 
+          (userRole === "agent" && (route.path === "Facture" || route.path === "Commande" || route.path === "profil")) || // Agent sees only Facture and Commande
           (userRole === "superadmin" && (
             route.path === "Facture" || 
             route.path === "Main Dashboard" ||
@@ -38,7 +38,8 @@ export function SidebarLinks(props) {
             route.path === "Categorie" || 
             route.path === "Fournisseurs" ||
             route.path === "Depot" || 
-            route.path === "Lot" 
+            route.path === "Lot" ||
+            route.path === "profil"
           )) // Superadmin sees only Commande and Users
         ) {
           return (

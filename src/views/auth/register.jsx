@@ -73,7 +73,6 @@ export default function RegisterPage() {
         }
       });
 
-      navigate("/auth/sign-in"); // Redirect to login page after successful registration
     } catch (error) {
       if (error.response) {
         setError(error.response.data.message || error.response.data.msg);
@@ -86,14 +85,12 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="mt-16 mb-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
-      <div className="mt-[10vh] w-full max-w-full flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
-        <h4 className="mb-2.5 text-4xl font-bold text-navy-700 dark:text-white">
-          Register
-        </h4>
-        <p className="mb-9 ml-1 text-base text-gray-600">
-          Enter your details to create a new account.
-        </p>
+    <div className="mt-16 mb-16 flex h-full w-full bg-white rounded-md items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-center">
+      <div className="mt-[10vh] w-full bg-white shadow-md p-6 rounded-md max-w-full flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
+        
+        <h2 className="mb-9 ml-1 text-base font-bold text-black">
+          Enter  details to create a new account.
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <InputField

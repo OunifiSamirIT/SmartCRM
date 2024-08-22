@@ -20,27 +20,23 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-
+  
     try {
       const response = await axios.post('http://localhost:5000/auth/login', {
         email,
         password,
       });
-
+  
       const { token, user } = response.data;
-      const role = user.role;  // Extract the single role as a string
-
-      // Store user token, info, and role in either localStorage or sessionStorage
-      if (rememberMe) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('role', role);  // Store the single role string
-      } else {
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('user', JSON.stringify(user));
-        sessionStorage.setItem('role', role);  // Store the single role string
-      }
-
+      const role = user.role;  // Extract the role
+      const userId = user.id;  // Extract the user ID
+  
+      // Store user token, info, and role in sessionStorage
+      sessionStorage.setItem('token', token);
+      sessionStorage.setItem('user', JSON.stringify(user));  // Store the entire user object
+      sessionStorage.setItem('role', role);  // Store the role separately
+      sessionStorage.setItem('userId', userId);  // Store the user ID separately
+  
       // Navigate to a page based on user role
       if (role === "admin") {
         navigate("/admin/default");
@@ -59,6 +55,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+  
 
   const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
   const role = localStorage.getItem('role') || sessionStorage.getItem('role');
@@ -74,11 +71,7 @@ export default function LoginPage() {
           Enter your email and password to login.
         </p>
 
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
-          <p className="text-base text-gray-600 dark:text-white">or</p>
-          <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
-        </div>
+       
 
         <form onSubmit={Auth}>
           <InputField

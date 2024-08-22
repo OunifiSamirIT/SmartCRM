@@ -21,6 +21,7 @@ import RTLDefault from "views/rtl/default";
 // Auth Imports
 import SignIn from "views/auth/SignIn";
 import Register from "views/auth/register";
+import Profil from "views/admin/tables/componentscopy/profiluser";
 
 // Icon Imports
 import {
@@ -140,10 +141,17 @@ const routes = [
   },
   {
     name: "Add USER",
-    layout: "/auth",
+    layout: "/admin",
     path: "adduser",
     icon: <MdLock className="h-6 w-6" />,
     component: <Register />,
+  },
+  {
+    name: "Profil",
+    layout: "/admin",
+    path: "profil",
+    icon: <MdLock className="h-6 w-6" />,
+    component: <Profil />,
   },
   // {
   //   name: "RTL Admin",
