@@ -50,14 +50,11 @@ const Dashboard = () => {
   //         `http://localhost:5000/users`
   //       );
   //       setUsers(response.data.result); // Assuming your API response has a 'result' array containing users
-       
+
   //     } catch (error) {
   //       setMsg("Error fetching users.");
   //     }
   //   };
-
-
-
 
   //   const getData = async () => {
   //     try {
@@ -65,25 +62,23 @@ const Dashboard = () => {
   //         `http://localhost:5000/articles`
   //       );
   //       setData(response.data.result);
-       
+
   //     } catch (error) {
   //       console.error("Error fetching data:", error);
   //     }
   //   };
-  
+
   //   getUsers();
   //   getData();
   //   fetchFournisseurs();
   //   fetchCategories();
   // }, []);
 
-
   return (
     <div>
       {/* Card widget */}
 
       <div className="mt-3  grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3 3xl:grid-cols-6">
-      
         <Widget
           icon={<MdBarChart className="h-7 w-7" />}
           title={"Fournisseurs"}
@@ -122,40 +117,14 @@ const Dashboard = () => {
         {/* <TotalSpent />
         <PieChartCard /> */}
       </div>
-      {/* <PowerBIEmbed
-	embedConfig = {{
-		type: 'report',   // Supported types: report, dashboard, tile, visual, qna, paginated report and create
-		id: '<Report Id>',
-		embedUrl: '<Embed Url>',
-		accessToken: '<Access Token>',
-		tokenType: models.TokenType.Embed, // Use models.TokenType.Aad for SaaS embed
-		settings: {
-			panes: {
-				filters: {
-					expanded: false,
-					visible: false
-				}
-			},
-			background: models.BackgroundType.Transparent,
-		}
-	}}
-
-	eventHandlers = {
-		new Map([
-			['loaded', function () {console.log('Report loaded');}],
-			['rendered', function () {console.log('Report rendered');}],
-			['error', function (event) {console.log(event.detail);}],
-			['visualClicked', () => console.log('visual clicked')],
-			['pageChanged', (event) => console.log(event)],
-		])
-	}
-
-	cssClassName = { "reportClass" }
-
-	getEmbeddedComponent = { (embeddedReport) => {
-		window.report = embeddedReport;
-	}}
-/> */}
+      <iframe
+        title="arijpfe"
+        width="1140"
+        height="541.25"
+        src="https://app.powerbi.com/reportEmbed?reportId=eaafc1d7-23fa-44f8-82ca-16c05d019bbd&autoAuth=true&embeddedDemo=true"
+        frameborder="0"
+        allowFullScreen="true"
+      ></iframe>
     </div>
   );
 };
