@@ -322,6 +322,11 @@ module.exports = {
       shadow: {
         500: "rgba(112, 144, 176, 0.08)",
       },
+      variants: {
+        extend: {
+          animation: ['responsive', 'motion-safe', 'motion-reduce']
+        }
+      },
     }),
   },
   plugins: [require("tailwindcss-rtl")],

@@ -147,17 +147,28 @@ const LotTable = () => {
             </tr>
           </thead>
           <tbody>
-            {lots.map((lot) => (
-              <tr key={lot.id} className="bg-white border-b">
-                <td className="px-6 py-4">{lot.Name_Lot}</td>
-                <td className="px-6 py-4">{lot.LS_NoSerie}</td>
-                <td className="px-6 py-4">{lot.LS_Qte}</td>
-                <td className="px-6 py-4">{lot.LS_LotEpuise ? 'Yes' : 'No'}</td>
-                <td className="px-6 py-4">{lot.DL_NoIn}</td>
-                <td className="px-6 py-4">{lot.DL_NoOut}</td>
-                <td className="px-6 py-4">{lot.LS_MvtStock}</td>
-                <td className="px-6 py-4">{lot.DE_No}</td>
-                <td className="px-6 py-4">
+          {lots.map((lot) => (
+            <tr key={lot.id}>
+              <td className="py-2 px-4 border-b">{lot.Name_Lot}</td>
+              <td className="py-2 px-4 border-b">{lot.LS_NoSerie}</td>
+              <td className="py-2 px-4 border-b">{lot.LS_Qte}</td>
+              <td className="py-2 px-4 border-b">
+              <span 
+  className={`px-2 py-1 rounded-full text-xs font-semibold ${
+    lot.LS_LotEpuise
+      ? 'bg-red-100 text-red-800'
+      : 'bg-green-100 text-green-800'
+  }`}
+>
+  {lot.LS_LotEpuise ? "Yes" : "No"}
+</span>
+              </td>
+              <td className="py-2 px-4 border-b">{lot.DL_NoIn}</td>
+              <td className="py-2 px-4 border-b">{lot.DL_NoOut}</td>
+              <td className="py-2 px-4 border-b">{lot.LS_MvtStock}</td>
+              <td className="py-2 px-4 border-b">{lot.DE_No}</td>
+              <td className="py-2 px-4 border-b">
+               <td className="px-6 py-4">
                   <button
                     onClick={() => handleEditClick(lot)}
                     className="font-medium text-blue-600 hover:underline mr-2"
@@ -171,9 +182,10 @@ const LotTable = () => {
                     Delete
                   </button>
                 </td>
-              </tr>
-            ))}
-          </tbody>
+              </td>
+            </tr>
+          ))}
+        </tbody>
         </table>
       </div>
 

@@ -420,41 +420,44 @@ const ArticleTable = () => {
         }
       );
 
-      setProducts([...products, response.data]);
-      setIsAddModalOpen(false);
-      // Product added successfully
-      await Swal.fire({
-        icon: "success",
-        title: "Product Added Successfully!",
-        text: "The product has been added to the database.",
-        confirmButtonText: "Add Another Product",
-        showCancelButton: true,
-        cancelButtonText: "Close",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // User wants to add another product
-          setFormData({
-            AR_Ref: "",
-            AR_Design: "",
-            FA_CodeFamille: "",
-            AR_SuiviStock: false,
-            categorieId: "",
-            fournisseurId: "",
-            totalAmount: "",
-            PrixProduct: "",
-            QuantiteProduct: "",
-            QuantiteProductAvalible: "",
-            imageUrl: null,
-            stockId: "",
-          });
-          setFormErrors({});
-          setProductImagePreview(null);
-        } else {
-          // User wants to close the modal
-          handlecancel()
-          setIsAddModalOpen(false);
-        }
+      setProducts([...products, response.data.product]);
+
+      // Check if there's a warning about exceeding lot limit
+      if (response.data.warning) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Product Added, But...",
+          text: "The product has been added, but the lot limit has been exceeded. The lot cannot support more products.",
+          confirmButtonText: "Understood",
+        });
+      } else {
+        await Swal.fire({
+          icon: "success",
+          title: "Product Added Successfully!",
+          text: "The product has been added to the database.",
+          confirmButtonText: "OK",
+        });
+      }
+
+      // Reset form for the next product
+      setFormData({
+        AR_Ref: "",
+        AR_Design: "",
+        FA_CodeFamille: "",
+        AR_SuiviStock: false,
+        categorieId: "",
+        fournisseurId: "",
+        totalAmount: "",
+        PrixProduct: "",
+        QuantiteProduct: "",
+        QuantiteProductAvalible: "",
+        imageUrl: null,
+        stockId: "",
       });
+      setFormErrors({});
+      setProductImagePreview(null);
+
+      // The modal stays open, ready for the next product
 
     } catch (error) {
       console.error("Error adding product:", error);
@@ -465,6 +468,7 @@ const ArticleTable = () => {
       });
     }
   };
+
 
   const handleUpdateProduct = async (e) => {
     e.preventDefault();

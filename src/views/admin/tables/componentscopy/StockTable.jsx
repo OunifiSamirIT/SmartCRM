@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Modal from "react-modal";
-import { FaArrowDown, FaArrowUp } from 'react-icons/fa';
+import { FaArrowDown, FaArrowUp, FaExclamationTriangle } from 'react-icons/fa';
 
 Modal.setAppElement('#root');
 
@@ -137,55 +137,37 @@ const StockTable = () => {
     }
   };
 
-  // const renderProductsTable = (products, stock) => {
-  //   return (
-  //     <table className="w-full text-sm text-left text-gray-500">
-  //       <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-  //         <tr>
-  //           <th scope="col" className="px-2 py-3">Image Product</th>
-  //           <th scope="col" className="px-2 py-3">Product Name</th>
-  //           <th scope="col" className="px-2 py-3">Price</th>
-  //           <th scope="col" className="px-2 py-3">Product Quantity</th>
-  //           <th scope="col" className="px-2 py-3">Avlaible Quantity</th>
-  //           <th scope="col" className="px-2 py-3">Status</th>
-  //         </tr>
-  //       </thead>
-  //       <tbody>
-  //         {products.map(product => {
-  //           const threshold = product.QuantiteProduct * 0.25;
-  //           const isBelowThreshold = stock.productQuantity < threshold;
-  //           const isAboveThreshold = stock.productQuantity >= threshold;
-  
-  //           return (
-  //             <tr key={product.id} className="bg-white border-b">
-  //               <td className="px-2 py-4">
-  //                 {product.imageUrl && (
-  //                   <img
-  //                     src={`http://localhost:5000/${product.imageUrl}`}
-  //                     alt={product.AR_Design}
-  //                     className="h-10 w-10 object-cover"
-  //                   />
-  //                 )}
-  //               </td>
-  //               <td className="px-2 py-4">{product.AR_Design}</td>
-  //               <td className="px-2 py-4">{product.PrixProduct}</td>
-  //               <td className="px-2 py-4">{product.QuantiteProduct}</td>
-  //               <td className="px-2 py-4">{stock.productQuantity || 0}</td>
-  //               <td className="px-2 py-4">
-  //                 {isBelowThreshold ? (
-  //                   <FaArrowDown className="text-red-500" />
-  //                 ) : (
-  //                   <FaArrowUp className="text-green-500" />
-  //                 )}
-  //               </td>
-  //             </tr>
-  //           );
-  //         })}
-  //       </tbody>
-  //     </table>
-  //   );
-  // };
-  
+
+  const calculateTotals = (products) => {
+    return products.reduce((acc, product) => ({
+      totalQuantity: acc.totalQuantity + product.QuantiteProduct,
+      totalInStock: acc.totalInStock + product.QuantiteProductAvalible
+    }), { totalQuantity: 0, totalInStock: 0 });
+  };
+ 
+  const renderStockHeader = (stock, totalQuantity, totalInStock) => {
+
+    const isExhausted =  stock.isExhausted == 1; 
+    return (
+      <div className="flex items-center space-x-2 mb-2">
+        <span className="bg-blue-500 text-white text-xs font-semibold py-1 px-2 rounded-full">
+          Stock : {stock.stockName}
+        </span>
+        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+          Total Products: {totalQuantity}
+        </span>
+        <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+          Available In Stock: {totalInStock}
+        </span>
+        {isExhausted && (
+          <span className="animate-pulse bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
+            <FaExclamationTriangle className="mr-1" />
+            Lot Exhausted
+          </span>
+        )}
+      </div>
+    );
+  };
   
   const renderProductsTable = (products, stock) => {
     return (
@@ -305,21 +287,21 @@ const StockTable = () => {
         return rows;
       }, []).map((rowStocks, rowIndex) => (
         <div key={rowIndex} className="flex flex-wrap gap-x-5">
-          {rowStocks.map(stock => (
-            <div key={stock.id} className="w-full sm:w-1/2 lg:w-[45%] px-2 mb-4">
-              <div className="bg-white p-4 shadow rounded">
-                <div className="flex items-center">Stock :
-                  <h3 className="bg-blue-500 mx-2 text-white text-xs font-semibold py-1 px-2 rounded-full">
-                    {stock.stockName}
-                  </h3>
+          {rowStocks.map(stock => {
+            const products = productsByStock[stock.id] || [];
+            const { totalQuantity, totalInStock } = calculateTotals(products);
+            return (
+              <div key={stock.id} className="w-full sm:w-1/2 lg:w-[45%] px-2 mb-4">
+                <div className="bg-white p-4 shadow rounded">
+                {renderStockHeader(stock, totalQuantity, totalInStock)}
+                  {products.length > 0 
+                    ? renderProductsTable(products, stock) 
+                    : <p>No products available</p>
+                  }
                 </div>
-                {productsByStock[stock.id] 
-                  ? renderProductsTable(productsByStock[stock.id], stock) 
-                  : <p>No products available</p>
-                }
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ))}
     </div>
