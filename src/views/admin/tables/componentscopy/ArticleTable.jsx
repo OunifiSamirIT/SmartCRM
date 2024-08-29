@@ -3,6 +3,8 @@ import axios from "axios";
 import Modal from "react-modal";
 import Swal from "sweetalert2";
 import A from "./ai-to-pdf-1024x576.png";
+import ProductModal from './ProductModal';  // Adjust the import path as needed
+
 import "./modal.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
@@ -713,7 +715,7 @@ const ArticleTable = () => {
                     {stocks.find((stock) => stock.id === product.stockId)
                       ?.stockName || ""}
                   </td>
-                  <td className="flex items-center px-3 py-4">
+                  <td className="flex items-center px-1 py-4">
                     <button
                       onClick={() => handleUpdateClick(product)}
                       className="mr-3 font-medium text-blue-600 hover:underline dark:text-blue-500"
@@ -773,7 +775,7 @@ const ArticleTable = () => {
         </div>
       </div>
 
-      <Modal
+      {/* <Modal
   isOpen={isAddModalOpen}
   onRequestClose={() => setIsAddModalOpen(false)}
   contentLabel="Add Product"
@@ -1107,8 +1109,25 @@ const ArticleTable = () => {
             )}
           </div>
         </div>
-      </Modal>
-
+      </Modal> */}
+<ProductModal
+  isOpen={isAddModalOpen}
+  onClose={() => setIsAddModalOpen(false)}
+  currentProduct={currentProduct}
+  formData={formData}
+  formErrors={formErrors}
+  handleChange={handleChange}
+  handleAddProduct={handleAddProduct}
+  handleProductImageChange={handleProductImageChange}
+  productImagePreview={productImagePreview}
+  handleFileChange={handleFileChange}
+  handleFileUpload={handleFileUpload}
+  data={data}
+  imageUrl={imageUrl}
+  categories={categories}
+  stocks={stocks}
+  fournisseurs={fournisseurs}
+/>
       <Modal
   isOpen={isUpdateModalOpen}
   onRequestClose={() => setIsUpdateModalOpen(false)}
