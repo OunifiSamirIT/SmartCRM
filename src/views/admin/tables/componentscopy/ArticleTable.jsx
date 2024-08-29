@@ -4,7 +4,8 @@ import Modal from "react-modal";
 import Swal from "sweetalert2";
 import A from "./ai-to-pdf-1024x576.png";
 import "./modal.css";
-
+import { motion, AnimatePresence } from "framer-motion";
+import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 Modal.setAppElement("#root"); // Or use '#__next' for Next.js
 const ArticleTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

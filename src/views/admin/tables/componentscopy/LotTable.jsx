@@ -62,12 +62,22 @@ const LotTable = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      let response;
       if (currentLot) {
-        await axios.put(`http://localhost:5000/lots/${currentLot.id}`, formData);
+        response = await axios.put(`http://localhost:5000/lots/${currentLot.id}`, formData);
       } else {
-        await axios.post("http://localhost:5000/lots", formData);
+        response = await axios.post("http://localhost:5000/lots", formData);
       }
-      fetchLots();
+      
+      // Update the local state with the response data
+      setLots(prevLots => {
+        if (currentLot) {
+          return prevLots.map(lot => lot.id === response.data.id ? response.data : lot);
+        } else {
+          return [...prevLots, response.data];
+        }
+      });
+  
       setIsModalOpen(false);
       setFormData({
         Name_Lot: '',
@@ -80,10 +90,12 @@ const LotTable = () => {
         DE_No: ''
       });
       setCurrentLot(null);
+  
     } catch (error) {
       console.error("Error submitting lot:", error);
     }
   };
+
 
   const handleEditClick = (lot) => {
     setCurrentLot(lot);

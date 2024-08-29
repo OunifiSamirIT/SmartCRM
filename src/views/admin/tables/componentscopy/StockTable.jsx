@@ -3,6 +3,7 @@ import axios from "axios";
 import Modal from "react-modal";
 import { FaArrowDown, FaArrowUp, FaExclamationTriangle } from 'react-icons/fa';
 
+import { motion } from 'framer-motion';
 Modal.setAppElement('#root');
 
 const StockTable = () => {
@@ -145,76 +146,96 @@ const StockTable = () => {
     }), { totalQuantity: 0, totalInStock: 0 });
   };
  
-  const renderStockHeader = (stock, totalQuantity, totalInStock) => {
+  const renderStockHeader = (stock, totalQuantity, totalInStock, lots) => {
+    const associatedLot = lots.find(lot => lot.id === stock.lotId);
+    const isExhausted = associatedLot ? associatedLot.LS_LotEpuise : false;
 
-    const isExhausted =  stock.isExhausted == 1; 
     return (
-      <div className="flex items-center space-x-2 mb-2">
-        <span className="bg-blue-500 text-white text-xs font-semibold py-1 px-2 rounded-full">
-          Stock : {stock.stockName}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-wrap items-center space-x-2 mb-4"
+      >
+        <span className="bg-blue-500 text-white text-sm font-semibold py-2 px-4 rounded-full mb-2">
+          Stock: {stock.stockName}
         </span>
-        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+        <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full mb-2">
           Total Products: {totalQuantity}
         </span>
-        <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+        <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full mb-2">
           Available In Stock: {totalInStock}
         </span>
         {isExhausted && (
-          <span className="animate-pulse bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center">
-            <FaExclamationTriangle className="mr-1" />
+          <motion.span 
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+            className="bg-red-100 text-red-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mb-2"
+          >
+            <FaExclamationTriangle className="mr-2" />
             Lot Exhausted
-          </span>
+          </motion.span>
         )}
-      </div>
+      </motion.div>
     );
   };
-  
+
   const renderProductsTable = (products, stock) => {
     return (
-      <table className="w-full text-sm text-left text-gray-500">
+      <motion.table 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="w-full text-sm text-left text-gray-500"
+      >
         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
-            <th scope="col" className="px-2 py-3">Image Product</th>
-            <th scope="col" className="px-2 py-3">Product Name</th>
-            <th scope="col" className="px-2 py-3">Price</th>
-            <th scope="col" className="px-2 py-3">Product Quantity</th>
-            <th scope="col" className="px-2 py-3">Quantity in Stock</th>
-            <th scope="col" className="px-2 py-3">Status</th>
+            <th scope="col" className="px-3 py-3">Image</th>
+            <th scope="col" className="px-3 py-3">Product</th>
+            <th scope="col" className="px-3 py-3">Price</th>
+            <th scope="col" className="px-3 py-3">Quantity</th>
+            <th scope="col" className="px-3 py-3">In Stock</th>
+            <th scope="col" className="px-3 py-3">Status</th>
           </tr>
         </thead>
         <tbody>
-          {products.map(product => {
+          {products.map((product, index) => {
             const threshold = product.QuantiteProduct * 0.25;
             const isBelowThreshold = product.QuantiteProductAvalible < threshold;
-            const isAboveThreshold = product.QuantiteProductAvalible >= threshold;
-  
+
             return (
-              <tr key={product.id} className="bg-white border-b">
-                <td className="px-2 py-4">
+              <motion.tr 
+                key={product.id} 
+                className="bg-white border-b"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <td className="px-3 py-2">
                   {product.imageUrl && (
                     <img
                       src={`http://localhost:5000/${product.imageUrl}`}
                       alt={product.AR_Design}
-                      className="h-10 w-10 object-cover"
+                      className="h-10 w-10 object-cover rounded"
                     />
                   )}
                 </td>
-                <td className="px-2 py-4">{product.AR_Design}</td>
-                <td className="px-2 py-4">{product.PrixProduct}</td>
-                <td className="px-2 py-4">{product.QuantiteProduct}</td>
-                <td className="px-2 py-4">{product.QuantiteProductAvalible }</td>
-                <td className="px-2 py-4">
+                <td className="px-3 py-2 font-medium">{product.AR_Design}</td>
+                <td className="px-3 py-2">{product.PrixProduct}</td>
+                <td className="px-3 py-2">{product.QuantiteProduct}</td>
+                <td className="px-3 py-2">{product.QuantiteProductAvalible}</td>
+                <td className="px-3 py-2">
                   {isBelowThreshold ? (
                     <FaArrowDown className="text-red-500" />
                   ) : (
                     <FaArrowUp className="text-green-500" />
                   )}
                 </td>
-              </tr>
+              </motion.tr>
             );
           })}
         </tbody>
-      </table>
+      </motion.table>
     );
   };
 
@@ -280,31 +301,28 @@ const StockTable = () => {
         </table>
       </div>
 
-      <div className="space-y-1">
-      {stocks.reduce((rows, stock, index) => {
-        if (index % 2 === 0) rows.push([]);
-        rows[rows.length - 1].push(stock);
-        return rows;
-      }, []).map((rowStocks, rowIndex) => (
-        <div key={rowIndex} className="flex flex-wrap gap-x-5">
-          {rowStocks.map(stock => {
-            const products = productsByStock[stock.id] || [];
-            const { totalQuantity, totalInStock } = calculateTotals(products);
-            return (
-              <div key={stock.id} className="w-full sm:w-1/2 lg:w-[45%] px-2 mb-4">
-                <div className="bg-white p-4 shadow rounded">
-                {renderStockHeader(stock, totalQuantity, totalInStock)}
-                  {products.length > 0 
-                    ? renderProductsTable(products, stock) 
-                    : <p>No products available</p>
-                  }
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {stocks.map(stock => {
+          const products = productsByStock[stock.id] || [];
+          const { totalQuantity, totalInStock } = calculateTotals(products);
+          return (
+            <motion.div 
+              key={stock.id}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white p-6 rounded-lg shadow-lg"
+            >
+              {renderStockHeader(stock, totalQuantity, totalInStock, lots)}
+              {products.length > 0 
+                ? renderProductsTable(products, stock) 
+                : <p className="text-gray-500 text-center py-4">No products available</p>
+              }
+            </motion.div>
+          );
+        })}
+      </div>
 
       <Modal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)}>
         <h2 className="text-xl font-bold mb-4">{currentStock ? "Edit Stock" : "Add Stock"}</h2>
