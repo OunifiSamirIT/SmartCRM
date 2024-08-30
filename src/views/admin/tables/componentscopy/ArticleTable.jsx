@@ -425,19 +425,33 @@ const ArticleTable = () => {
 
       setProducts([...products, response.data.product]);
 
-      // Check if there's a warning about exceeding lot limit
-      if (response.data.warning) {
+      // Use the stockId from the response
+      const addedProductStockId = response.data.product.stockId;
+
+      // Fetch updated stock information
+      const stockResponse = await axios.get(`http://localhost:5000/stocks/${addedProductStockId}`);
+      const updatedStock = stockResponse.data;
+
+      // Fetch all products in the current stock
+      const productsInStockResponse = await axios.get(`http://localhost:5000/stocks/${addedProductStockId}/products`);
+      const productsInStock = productsInStockResponse.data;
+
+      // Calculate total quantity of products in the stock
+      const totalQuantityInStock = productsInStock.reduce((sum, product) => sum + parseInt(product.QuantiteProduct), 0);
+
+      if (totalQuantityInStock > parseInt(updatedStock.maxQuantityStock)) {
         await Swal.fire({
           icon: "warning",
-          title: "Product Added, But...",
-          text: "The product has been added, but the lot limit has been exceeded. The lot cannot support more products.",
+          title: "Product Added, But Stock Limit Exceeded",
+          text: `The product has been added, but the total quantity (${totalQuantityInStock}) now exceeds the maximum stock capacity (${updatedStock.maxQuantityStock}).`,
           confirmButtonText: "Understood",
         });
       } else {
+        const availableQuantity = parseInt(updatedStock.maxQuantityStock) - totalQuantityInStock;
         await Swal.fire({
           icon: "success",
           title: "Product Added Successfully!",
-          text: "The product has been added to the database.",
+          text: `The product has been added to the database. Available quantity in stock: ${availableQuantity}`,
           confirmButtonText: "OK",
         });
       }
@@ -460,8 +474,6 @@ const ArticleTable = () => {
       setFormErrors({});
       setProductImagePreview(null);
 
-      // The modal stays open, ready for the next product
-
     } catch (error) {
       console.error("Error adding product:", error);
       Swal.fire({
@@ -471,6 +483,7 @@ const ArticleTable = () => {
       });
     }
   };
+
 
 
   const handleUpdateProduct = async (e) => {
@@ -574,16 +587,42 @@ const ArticleTable = () => {
 
   const handleDeleteProduct = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/products/${id}`);
-      const response = await axios.get(
-        "http://localhost:5000/products/getProduct"
-      );
-      setProducts(response.data);
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      });
+
+      if (result.isConfirmed) {
+        await axios.delete(`http://localhost:5000/products/${id}`);
+        
+        // Fetch updated product list
+        const productsResponse = await axios.get("http://localhost:5000/products/getProduct");
+        setProducts(productsResponse.data);
+
+        // Fetch updated stock information
+        const stocksResponse = await axios.get("http://localhost:5000/stocks");
+        setStocks(stocksResponse.data);
+
+        Swal.fire(
+          'Deleted!',
+          'The product has been deleted and stock updated.',
+          'success'
+        );
+      }
     } catch (error) {
       console.error("Error deleting product:", error);
+      Swal.fire(
+        'Error!',
+        'There was a problem deleting the product.',
+        'error'
+      );
     }
   };
-
   const handleUpdateClick = (product) => {
     setcurrentProduct(product);
     setFormData({

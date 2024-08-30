@@ -4,6 +4,7 @@ import Modal from "react-modal";
 import { FaArrowDown, FaArrowUp, FaExclamationTriangle } from 'react-icons/fa';
 
 import { motion } from 'framer-motion';
+import Swal from "sweetalert2";
 Modal.setAppElement('#root');
 
 const StockTable = () => {
@@ -21,7 +22,7 @@ const StockTable = () => {
   const [formData, setFormData] = useState({
     stockName: '',
     categorieId: '',
-    productQuantity: '',
+    maxQuantityStock: '',  // Add this line
     fournisseurId: '',
     lotId: '',
     DepotId: ''
@@ -95,39 +96,57 @@ const StockTable = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const dataToSubmit = {
+        ...formData,
+        maxQuantityStock: parseInt(formData.maxQuantityStock)
+      };
+
       if (currentStock) {
-        await axios.put(`http://localhost:5000/stocks/${currentStock.id}`, formData);
+        await axios.put(`http://localhost:5000/stocks/${currentStock.id}`, dataToSubmit);
       } else {
-        await axios.post("http://localhost:5000/stocks", formData);
+        await axios.post("http://localhost:5000/stocks/add", dataToSubmit);
       }
-      fetchStocks();
+      await fetchStocks();
       setIsModalOpen(false);
       setFormData({
         stockName: '',
         categorieId: '',
-        productQuantity: '',
+        maxQuantityStock: '',
         fournisseurId: '',
         lotId: '',
         DepotId: ''
       });
       setCurrentStock(null);
+
+      Swal.fire({
+        icon: 'success',
+        title: currentStock ? 'Stock Updated' : 'Stock Added',
+        text: 'The operation was successful.',
+      });
     } catch (error) {
       console.error("Error submitting stock:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while processing your request.',
+      });
     }
   };
+
 
   const handleEditClick = (stock) => {
     setCurrentStock(stock);
     setFormData({
       stockName: stock.stockName,
       categorieId: stock.categorieId,
-      productQuantity: stock.productQuantity,
+      maxQuantityStock: stock.maxQuantityStock,
       fournisseurId: stock.fournisseurId,
       lotId: stock.lotId,
       DepotId: stock.DepotId
     });
     setIsModalOpen(true);
   };
+
 
   const handleDeleteStock = async (id) => {
     try {
@@ -248,7 +267,7 @@ const StockTable = () => {
           setFormData({
             stockName: '',
             categorieId: '',
-            productQuantity: '',
+            maxQuantityStock: '',
             fournisseurId: '',
             lotId: '',
             DepotId: ''
@@ -265,6 +284,7 @@ const StockTable = () => {
             <tr>
               <th scope="col" className="px-6 py-3">Stock Name</th>
               <th scope="col" className="px-6 py-3">Category ID</th>
+              <th scope="col" className="px-6 py-3">Quantity Max In</th>
               <th scope="col" className="px-6 py-3">Quantity</th>
               <th scope="col" className="px-6 py-3">Fournisseur ID</th>
               <th scope="col" className="px-6 py-3">Lot ID</th>
@@ -277,6 +297,7 @@ const StockTable = () => {
               <tr key={stock.id} className="bg-white border-b">
                 <td className="px-6 py-4">{stock.stockName}</td>
                 <td className="px-6 py-4">{stock.categorieId}</td>
+                <td className="px-6 py-4">{stock.maxQuantityStock}</td>
                 <td className="px-6 py-4">{stock.productQuantity}</td>
                 <td className="px-6 py-4">{stock.fournisseurId}</td>
                 <td className="px-6 py-4">{lots.find(lot => lot.id === stock.lotId)?.Name_Lot}</td>
@@ -353,12 +374,13 @@ const StockTable = () => {
               ))}
             </select>
           </div>
+        
           <div className="mb-4">
-            <label className="block text-gray-700">Quantity:</label>
+            <label className="block text-gray-700">Max Quantity:</label>
             <input
               type="number"
-              name="productQuantity"
-              value={formData.productQuantity}
+              name="maxQuantityStock"
+              value={formData.maxQuantityStock}
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded p-2"
               required
@@ -390,7 +412,7 @@ const StockTable = () => {
             >
               <option value="">Select Lot</option>
               {lots.map(lot => (
-                <option key={lot.id} value={lot.id}>{lot.name}</option>
+                <option key={lot.id} value={lot.id}>{lot.Name_Lot}</option>
               ))}
             </select>
           </div>
