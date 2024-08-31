@@ -1,45 +1,106 @@
-/* eslint-disable */
-
-import { HiX } from "react-icons/hi";
+import React from "react";
+import { motion } from "framer-motion";
 import Links from "./components/Links";
-
-import SidebarCard from "components/sidebar/componentsrtl/SidebarCard";
 import routes from "routes.js";
-import Logo from './../../assets/logo.png'
-
-const Sidebar = ({ open, onClose }) => {
+import Logo from './../../assets/logo.png' 
+const Sidebar = () => {
   return (
-    <div
-      className={`sm:none duration-175 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${
-        open ? "translate-x-0" : "-translate-x-96"
-      }`}
+    <motion.div
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+      className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-navy-800 shadow-lg overflow-y-auto"
     >
-      <span
-        className="absolute top-4 right-4 block cursor-pointer xl:hidden"
-        onClick={onClose}
+      <div className="flex flex-col h-full">
+      <motion.div 
+        className="sticky top-0 z-10 bg-gradient-to-r from-blue-500 to-purple-600 p-6 shadow-lg"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 300,
+          damping: 20,
+          delay: 0.2
+        }}
       >
-        <HiX />
-      </span>
+        <motion.div
+          className="bg-white dark:bg-navy-800 rounded-lg p-4 shadow-inner"
+          initial={{ scale: 0.8, rotateY: -90 }}
+          animate={{ scale: 1, rotateY: 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 20,
+            delay: 0.5
+          }}
+        >
+          <motion.img
+            src={Logo}
+            alt="Logo"
+            className="w-full h-20 object-contain"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+            whileHover={{ 
+              scale: 1.05,
+              rotate: [0, -5, 5, -5, 0],
+              transition: { 
+                duration: 0.5,
+                rotate: {
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  duration: 0.5
+                }
+              }
+            }}
+          />
+        </motion.div>
+      </motion.div>
 
-      <div >
-        <div className="mt-1 ml-1 h-2.5 font-poppins text-[26px] font-bold uppercase text-navy-700 dark:text-white">
-          <img className="w-60 h-20" src={Logo}/>
-        </div>
+        <motion.div 
+          className="w-full h-px bg-gray-200 dark:bg-white/30 my-4"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        />
+
+        <motion.nav 
+          className="flex-grow px-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <ul className="space-y-2">
+            {routes.map((route, index) => (
+              <motion.li
+                key={index}
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 * index, duration: 0.5 }}
+              >
+                <motion.a
+                  href={route.layout + route.path}
+                  className="flex items-center p-2 text-gray-700 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-navy-700 transition-all duration-300 ease-in-out"
+                  whileHover={{ x: 5, backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <motion.span
+                    className="text-xl mr-3"
+                    whileHover={{ rotate: 360, scale: 1.2 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                  >
+                    {route.icon}
+                  </motion.span>
+                  <span className="font-medium">{route.name}</span>
+                </motion.a>
+              </motion.li>
+            ))}
+          </ul>
+        </motion.nav>
+
+        
       </div>
-      <div class="mt-[58px] mb-7 h-px bg-gray-300 dark:bg-white/30" />
-      {/* Nav item */}
-
-      <ul className="mb-auto pt-1">
-        <Links routes={routes} />
-      </ul>
-
-      {/* Free Horizon Card */}
-      <div className="flex justify-center">
-        <SidebarCard />
-      </div>
-
-      {/* Nav item end */}
-    </div>
+    </motion.div>
   );
 };
 

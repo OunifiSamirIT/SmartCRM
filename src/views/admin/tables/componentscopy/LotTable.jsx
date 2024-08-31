@@ -7,6 +7,7 @@ Modal.setAppElement('#root');
 const LotTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lots, setLots] = useState([]);
+  const [lots2, setLots2] = useState([]);
   const [depots, setDepots] = useState([]);
   const [stockMovements, setStockMovements] = useState([]);
   const [currentLot, setCurrentLot] = useState(null);
@@ -29,10 +30,33 @@ const LotTable = () => {
 
   const fetchLots = async () => {
     try {
+      console.log("Fetching lots...");
       const response = await axios.get("http://localhost:5000/lots");
-      setLots(response.data);
+      console.log("Lots fetched:", response.data);
+      
+      const updatedLots = await Promise.all(response.data.map(async (lot) => {
+        console.log(`Fetching stock for lot ${lot.id}...`);
+        const stockResponse = await axios.get(`http://localhost:5000/lots/stocks/lot/${lot.id}`);
+        console.log(`Stock for lot ${lot.id}:`, stockResponse.data);
+        
+        const productQuantity = stockResponse.data.productQuantity;
+        const newLSLotEpuise = productQuantity <= 0 ? true : false;
+        
+        if (lot.LS_LotEpuise !== newLSLotEpuise) {
+          console.log(`Updating lot ${lot.id} LS_LotEpuise to ${newLSLotEpuise}`);
+          const updatedLot = await axios.put(`http://localhost:5000/lots/${lot.id}`, {
+            ...lot,
+            LS_LotEpuise: newLSLotEpuise
+          });
+          return { ...updatedLot.data, productQuantity };
+        }
+        return { ...lot, productQuantity };
+      }));
+      
+      console.log("Updated lots:", updatedLots);
+      setLots(updatedLots);
     } catch (error) {
-      console.error("Error fetching lots:", error);
+      console.error("Error fetching or updating lots:", error);
     }
   };
 
@@ -165,15 +189,15 @@ const LotTable = () => {
               <td className="py-2 px-4 border-b">{lot.LS_NoSerie}</td>
               <td className="py-2 px-4 border-b">{lot.LS_Qte}</td>
               <td className="py-2 px-4 border-b">
-              <span 
-  className={`px-2 py-1 rounded-full text-xs font-semibold ${
-    lot.LS_LotEpuise
-      ? 'bg-red-100 text-red-800'
-      : 'bg-green-100 text-green-800'
-  }`}
->
-  {lot.LS_LotEpuise ? "Yes" : "No"}
-</span>
+                <span 
+                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    lot.LS_LotEpuise
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                  }`}
+                >
+                  {lot.LS_LotEpuise ? "Yes" : "No"}
+                </span>
               </td>
               <td className="py-2 px-4 border-b">{lot.DL_NoIn}</td>
               <td className="py-2 px-4 border-b">{lot.DL_NoOut}</td>

@@ -30,13 +30,16 @@ export default function LoginPage() {
       const { token, user } = response.data;
       const role = user.role;  // Extract the role
       const userId = user.id;  // Extract the user ID
+      const profileImage = user.profileImage;  // Extract the user ID
   
       // Store user token, info, and role in sessionStorage
       sessionStorage.setItem('token', token);
       sessionStorage.setItem('user', JSON.stringify(user));  // Store the entire user object
       sessionStorage.setItem('role', role);  // Store the role separately
       sessionStorage.setItem('userId', userId);  // Store the user ID separately
-  
+      sessionStorage.setItem('image', profileImage);  // Store the user ID separately
+      console.log("🚀 ~ Auth------- ~ response:", response)
+
       // Navigate to a page based on user role
       if (role === "admin") {
         navigate("/admin/default");

@@ -34,12 +34,13 @@ export function SidebarLinks(props) {
             route.path === "Facture" || 
             route.path === "Main Dashboard" ||
             route.path === "Article" || 
+            route.path === "Commerce" || 
             route.path === "Stock" || 
             route.path === "Categorie" || 
             route.path === "Fournisseurs" ||
             route.path === "Depot" || 
             route.path === "Lot" ||
-            route.path === "profil"
+            route.path === "profil" 
           )) // Superadmin sees only Commande and Users
         ) {
           return (

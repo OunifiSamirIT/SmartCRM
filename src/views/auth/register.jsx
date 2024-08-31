@@ -1,8 +1,22 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import InputField from "components/fields/InputField";
-import Checkbox from "components/checkbox";
-import { useNavigate } from "react-router-dom"; // import useNavigate hook
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+
+const InputField = ({ label, ...props }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className="mb-4"
+  >
+    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <input
+      {...props}
+      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+    />
+  </motion.div>
+);
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -15,11 +29,9 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Map role names to their corresponding IDs
   const roleIdMapping = {
     superadmin: 2,
     agent: 3
-    // Add other roles as needed
   };
 
   useEffect(() => {
@@ -31,7 +43,6 @@ export default function RegisterPage() {
         setError("Failed to fetch roles");
       }
     };
-
     fetchRoles();
   }, []);
 
@@ -46,9 +57,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Map role name to role ID
     const roleId = roleIdMapping[role.toLowerCase()];
-    
     if (!roleId) {
       setError("Invalid role selected");
       setIsLoading(false);
@@ -58,84 +67,101 @@ export default function RegisterPage() {
     const formData = new FormData();
     formData.append('email', email);
     formData.append('password', password);
-    formData.append('role', role); // Send role ID
-    formData.append('roleId', roleId); // Send role ID
+    formData.append('role', role);
+    formData.append('roleId', roleId);
     formData.append('profileImage', profileImage);
 
     try {
-        const token = sessionStorage.getItem('token');
-
+      const token = sessionStorage.getItem('token');
       await axios.post('http://localhost:5000/auth/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}` // Add Authorization header
-
+          'Authorization': `Bearer ${token}`
         }
       });
-
+      navigate('/login'); // Redirect to login page after successful registration
     } catch (error) {
-      if (error.response) {
-        setError(error.response.data.message || error.response.data.msg);
-      } else {
-        setError("An error occurred. Please try again.");
-      }
+      setError(error.response?.data?.message || "An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="mt-16 mb-16 flex h-full w-full bg-white rounded-md items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-center">
-      <div className="mt-[10vh] w-full bg-white shadow-md p-6 rounded-md max-w-full flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
-        
-        <h2 className="mb-9 ml-1 text-base font-bold text-black">
-          Enter  details to create a new account.
-        </h2>
-
-        <form onSubmit={handleSubmit}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl"
+      >
+        <div>
+         
+          <motion.h2
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="mt-6 text-center text-3xl font-extrabold text-gray-900"
+          >
+            Create  account
+          </motion.h2>
+        </div>
+        <motion.form
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="mt-8 space-y-6"
+          onSubmit={handleSubmit}
+        >
           <InputField
-            variant="auth"
-            extra="mb-3"
-            label="Email*"
-            placeholder="mail@simmmple.com"
-            id="email"
+            label="Email address"
+            id="email-address"
+            name="email"
             type="email"
+            autoComplete="email"
+            required
+            placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-
           <InputField
-            variant="auth"
-            extra="mb-3"
-            label="Password*"
-            placeholder="Min. 8 characters"
+            label="Password"
             id="password"
+            name="password"
             type="password"
+            autoComplete="new-password"
+            required
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-
           <InputField
-            variant="auth"
-            extra="mb-3"
-            label="Confirm Password*"
-            placeholder="Re-enter password"
-            id="confirmPassword"
+            label="Confirm Password"
+            id="confirm-password"
+            name="confirmPassword"
             type="password"
+            autoComplete="new-password"
+            required
+            placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
-          <div className="mb-4">
-            <label htmlFor="role" className="block text-sm font-medium text-navy-700 dark:text-white">
-              Role*
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-4"
+          >
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+              Role
             </label>
             <select
               id="role"
               name="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="mt-1 block w-full rounded-xl border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
               required
             >
               <option value="">Select a role</option>
@@ -145,10 +171,15 @@ export default function RegisterPage() {
                 </option>
               ))}
             </select>
-          </div>
+          </motion.div>
 
-          <div className="mb-4">
-            <label htmlFor="profileImage" className="block text-sm font-medium text-navy-700 dark:text-white">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-4"
+          >
+            <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-1">
               Profile Image
             </label>
             <input
@@ -157,33 +188,57 @@ export default function RegisterPage() {
               name="profileImage"
               accept="image/*"
               onChange={(e) => setProfileImage(e.target.files[0])}
-              className="mt-1 block w-full text-gray-900 dark:text-gray-100"
+              className="mt-1 block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-blue-50 file:text-blue-700
+                hover:file:bg-blue-100"
             />
+          </motion.div>
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-red-500 text-sm text-center"
+            >
+              {error}
+            </motion.p>
+          )}
+
+          <div>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : (
+                "Register"
+              )}
+            </motion.button>
           </div>
+        </motion.form>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            className="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Registering...' : 'Register'}
-          </button>
-        </form>
-
-        <div className="mt-4">
-          <span className="text-sm font-medium text-navy-700 dark:text-gray-600">
-            Already have an account?
-          </span>
-          <a
-            href="/login"
-            className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
-          >
-            Login
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="mt-2 text-center text-sm text-gray-600"
+        >
+          Already have an account?{" "}
+          <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            Sign in
           </a>
-        </div>
-      </div>
+        </motion.p>
+      </motion.div>
     </div>
   );
 }

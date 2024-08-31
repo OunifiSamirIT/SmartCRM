@@ -7,10 +7,13 @@ import Profile from "views/admin/profile";
 import DataTables from "views/admin/tables";
 
 import Article from "views/admin/tables/componentscopy/ArticleTable";
+import Commerce from "views/admin/tables/componentscopy/commerce";
+import Checkout from "views/admin/tables/componentscopy/Checkout";
 import Categorie from "views/admin/tables/componentscopy/CategorieTable";
 import Fournisseur from "views/admin/tables/componentscopy/FournisseurTable";
 import Stock from "views/admin/tables/componentscopy/StockTable";
-import Depot from "views/admin/tables/componentscopy/DepotTable";
+import DepotTable from "views/admin/tables/componentscopy/DepotTable";
+
 import Lot from "views/admin/tables/componentscopy/LotTable";
 import Commande from "views/admin/tables/componentscopy/CommandeTable";
 import Facture from "views/admin/tables/componentscopy/FactureTable";
@@ -40,7 +43,7 @@ const routes = [
   {
     name: "Main Dashboard",
     layout: "/admin",
-    path: "default",
+    path: "/default",
     icon: <MdHome className="h-6 w-6" />,
     component: <MainDashboard />,
   },
@@ -58,41 +61,57 @@ const routes = [
     name: "Article",
     layout: "/admin",
     icon: <MdLocalGroceryStore  className="h-6 w-6" />,
-    path: "Article",                  
+    path: "/Article",                  
     component: <Article />,
   },
+  // {
+  //   name: "Commerce",
+  //   layout: "/admin",
+  //   icon: <MdLocalGroceryStore  className="h-6 w-6" />,
+  //   path: "/Commerce",                  
+  //   component: <Commerce />,
+  // },
+  // {
+  //   name: "Checkout",
+  //   layout: "/admin",
+  //   icon: <MdLocalGroceryStore  className="h-6 w-6" />,
+  //   path: "/Checkout",                  
+  //   component: <Checkout />,
+  // },
+
+  
   {
     name: "Stock",
     layout: "/admin",
     icon: <MdHomeRepairService className="h-6 w-6" />,
-    path: "Stock",                  
+    path: "/Stock",                  
     component: <Stock />,
   },
   {
     name: "Commande",
     layout: "/admin",
     icon: <MdOutlineShoppingCart className="h-6 w-6" />,
-    path: "Commande",                  
+    path: "/Commande",                  
     component: <Commande />,
   },
   {
     name: "Facture",
     layout: "/admin",
     icon: <MdFactCheck className="h-6 w-6" />,
-    path: "Facture",                  
+    path: "/Facture",                  
     component: <Facture />,
   },
   {
     name: "Categorie",
     layout: "/admin",
     icon: <MdBarChart className="h-6 w-6" />,
-    path: "Categories",
+    path: "/Categories",
     component: <Categorie />,
   },
   {
     name: "Fournisseurs",
     layout: "/admin",
-    path: "fournisseurs",
+    path: "/fournisseurs",
     icon: <MdLocalShipping  className="h-6 w-6" />,
 
     component: <Fournisseur />,
@@ -104,14 +123,14 @@ const routes = [
     name: "Depot",
     layout: "/admin",
     icon: <MdLock  className="h-6 w-6" />,
-    path: "Depot",                  
-    component: <Depot />,
+    path: "/Depot",                  
+    component: <DepotTable />,
   },
   {
     name: "Lot",
     layout: "/admin",
     icon: <MdLock className="h-6 w-6" />,
-    path: "Lot",                  
+    path: "/Lot",                  
     component: <Lot />,
   },
  
@@ -128,28 +147,28 @@ const routes = [
     name: "Users",
     layout: "/admin",
     icon: <MdFactCheck className="h-6 w-6" />,
-    path: "Users",                  
+    path: "/Users",                  
     component: <Users />,
     role: "admin" // Add a role property to this route
   },
   {
     name: "Sign In",
     layout: "/auth",
-    path: "sign-in",
+    path: "/sign-in",
     icon: <MdLock className="h-6 w-6" />,
     component: <SignIn />,
   },
   {
     name: "Add USER",
     layout: "/admin",
-    path: "adduser",
+    path: "/adduser",
     icon: <MdLock className="h-6 w-6" />,
     component: <Register />,
   },
   {
     name: "Profil",
     layout: "/admin",
-    path: "profil",
+    path: "/profil",
     icon: <MdLock className="h-6 w-6" />,
     component: <Profil />,
   },
