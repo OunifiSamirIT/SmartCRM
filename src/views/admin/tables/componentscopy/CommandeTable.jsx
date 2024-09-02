@@ -19,12 +19,25 @@ const CommandeForm = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [pdfUrl, setPdfUrl] = useState('');
   const [facture, setFacture] = useState(null);
+  const [pdfBlob, setPdfBlob] = useState(null);
+
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   useEffect(() => {
     axios.get('http://localhost:5000/products/getProduct')
-      .then(response => setProducts(response.data))
+      .then(response => {
+        setProducts(response.data);
+        setFilteredProducts(response.data);
+      })
       .catch(error => console.error('Error fetching products:', error));
   }, []);
+
+  useEffect(() => {
+    const filtered = products.filter(product =>
+      product.AR_Design.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
 
   const handleProductChange = (productId, quantity, price) => {
     setQuantities(prevQuantities => ({
@@ -38,29 +51,63 @@ const CommandeForm = () => {
   };
 
  
+  const handleProductSelection = (product) => {
+    setSelectedProducts(prevSelected => {
+      const existingProduct = prevSelected.find(p => p.id === product.id);
+      if (existingProduct) {
+        return prevSelected.map(p => 
+          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
+        );
+      } else {
+        return [...prevSelected, { ...product, quantity: 1, price: product.PrixProduct }];
+      }
+    });
+  };
+
+  const handleQuantityChange = (id, quantity) => {
+    setSelectedProducts(prevSelected => 
+      prevSelected.map(p => 
+        p.id === id ? { ...p, quantity: parseInt(quantity)  } : p
+      )
+    );
+  };
+
+  const handlePriceChange = (id, price) => {
+    setSelectedProducts(prevSelected => 
+      prevSelected.map(p => 
+        p.id === id ? { ...p, price: parseFloat(price)  } : p
+      )
+    );
+  };
+
+  const handleRemoveProduct = (id) => {
+    setSelectedProducts(prevSelected => prevSelected.filter(p => p.id !== id));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const selectedProductList = selectedProducts.map(product => ({
       productId: product.id,
       quantity: product.quantity,
-      price: product.PrixProduct
+      price: product.price
     }));
 
-    console.log('Selected products:', selectedProductList);
+    const totalcommandeproduct = selectedProductList.reduce((total, product) => {
+      return total + (product.quantity * product.price);
+    }, 0);
 
     const data = {
       clientName,
       address,
       billingDate,
       deliveryDate,
-      products: selectedProductList
+      products: selectedProductList,
+      totalcommandeproduct
     };
 
-    console.log('Data being sent to server:', data);
-
     try {
-      const response = await axios.post('http://localhost:5000/commandeClients', data);
+      const response = await axios.post('http://localhost:5000/commandeClients/commande-clients', data);
       console.log('Commande created:', response.data);
       setFacture(response.data.facture);
       generatePDF(data, response.data.facture);
@@ -162,58 +209,72 @@ const CommandeForm = () => {
     const pdfBlob = pdf.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
     setPdfUrl(pdfUrl);
-    savePDFToServer(pdfBlob);
+    setPdfBlob(pdfBlob);
   };
 
-  const savePDFToServer = async (pdfBlob) => {
-    if (!facture) {
-      console.error('No facture data available');
+  const savePDFToServer = async () => {
+    if (!facture || !pdfBlob) {
+      console.error('No facture data or PDF available');
       return;
     }
   
     const formData = new FormData();
     formData.append('pdfFile', pdfBlob, 'facture.pdf');
+    formData.append('factureId', facture.id);
   
     try {
-      await axios.post(`http://localhost:5000/factures/${facture.id}/pdf`, formData, {
+      const response = await axios.post('http://localhost:5000/commandeClients/save-pdf', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('PDF saved to server successfully');
+      console.log('PDF saved to server successfully:', response.data);
+      Swal.fire({
+        icon: 'success',
+        title: 'Facture Saved',
+        text: 'The facture has been saved to the database successfully.',
+        timer: 2000,
+        showConfirmButton: false,
+      });
     } catch (error) {
       console.error('Error saving PDF to server:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error Saving Facture',
+        text: 'There was an error saving the facture to the database.',
+      });
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.AR_Design.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
-  const handleProductSelection = (product) => {
-    setSelectedProducts(prevSelected => {
-      const existingProduct = prevSelected.find(p => p.id === product.id);
-      if (existingProduct) {
-        return prevSelected.map(p => 
-          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
-        );
-      } else {
-        return [...prevSelected, { ...product, quantity: 1 }];
-      }
-    });
-  };
+  // const filteredProducts = products.filter(product =>
+  //   product.AR_Design.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
-  const handleQuantityChange = (id, quantity) => {
-    setSelectedProducts(prevSelected => 
-      prevSelected.map(p => 
-        p.id === id ? { ...p, quantity: parseInt(quantity) || 0 } : p
-      )
-    );
-  };
+  // const handleProductSelection = (product) => {
+  //   setSelectedProducts(prevSelected => {
+  //     const existingProduct = prevSelected.find(p => p.id === product.id);
+  //     if (existingProduct) {
+  //       return prevSelected.map(p => 
+  //         p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
+  //       );
+  //     } else {
+  //       return [...prevSelected, { ...product, quantity: 1 }];
+  //     }
+  //   });
+  // };
 
-  const handleRemoveProduct = (id) => {
-    setSelectedProducts(prevSelected => prevSelected.filter(p => p.id !== id));
-  };
+  // const handleQuantityChange = (id, quantity) => {
+  //   setSelectedProducts(prevSelected => 
+  //     prevSelected.map(p => 
+  //       p.id === id ? { ...p, quantity: parseInt(quantity) || 0 } : p
+  //     )
+  //   );
+  // };
+
+  // const handleRemoveProduct = (id) => {
+  //   setSelectedProducts(prevSelected => prevSelected.filter(p => p.id !== id));
+  // };
  return (
     <div className="flex flex-col lg:flex-row justify-between pt-5 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="w-full lg:w-2/3 mb-8 lg:mb-0 lg:mr-4">
@@ -288,38 +349,46 @@ const CommandeForm = () => {
               <h3 className="font-semibold text-lg text-gray-800">Products:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <AnimatePresence>
-                  {filteredProducts.map(product => (
-                    <motion.div
-                      key={product.id}
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-                    >
-                      <div className="flex flex-col items-center">
-                        <img 
-                          src={`http://localhost:5000/${product.imageUrl}`} 
-                          alt={product.AR_Design} 
-                          className="w-full h-32 object-cover rounded-md mb-2"
-                          onError={(e) => {
-                            e.target.onerror = null; 
-                            e.target.src = 'https://via.placeholder.com/150?text=No+Image';
-                          }}
-                        />
-                        <h4 className="text-sm font-medium text-gray-800 text-center mb-2">{product.AR_Design}</h4>
-                        <p className="text-sm text-gray-600 mb-2">Price: ${product.PrixProduct}</p>
-                        <button
-                          type="button"
-                          onClick={() => handleProductSelection(product)}
-                          className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
-                        >
-                          <FaShoppingCart className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+            {filteredProducts.map(product => (
+              <motion.div
+                key={product.id}
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+              >
+                <div className="flex flex-col items-center">
+                  <img 
+                    src={`http://localhost:5000/${product.imageUrl}`} 
+                    alt={product.AR_Design} 
+                    className="w-full h-32 object-cover rounded-md mb-2"
+                    onError={(e) => {
+                      e.target.onerror = null; 
+                      e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                    }}
+                  />
+                  <h4 className="text-sm font-medium text-gray-800 text-center mb-2">{product.AR_Design}</h4>
+                  <p className="text-sm text-gray-600 mb-2">Price: ${product.PrixProduct}</p>
+                  {product.QuantiteProductAvalible > 0 ? (
+                    <p className="text-sm text-green-600 mb-2">In stock: {product.QuantiteProductAvalible}</p>
+                  ) : (
+                    <p className="text-sm text-red-600 mb-2">Out of stock</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleProductSelection(product)}
+                    className={`bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300 ${
+                      product.QuantiteProductAvalible === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    disabled={product.QuantiteProductAvalible === 0}
+                  >
+                    <FaShoppingCart className="h-4 w-4" />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
               </div>
             </div>
 
@@ -337,13 +406,21 @@ const CommandeForm = () => {
                     >
                       <span className="text-sm font-medium text-gray-800">{product.AR_Design}</span>
                       <div className="flex items-center space-x-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={product.quantity}
-                          onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                          className="w-16 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                        />
+                      <input
+                    type="number"
+                    min="1"
+                    value={product.quantity}
+                    onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                    className="w-16 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={product.price}
+                    onChange={(e) => handlePriceChange(product.id, e.target.value)}
+                    className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  />
                         <button
                           type="button"
                           onClick={() => handleRemoveProduct(product.id)}
@@ -388,16 +465,7 @@ const CommandeForm = () => {
                 </a>
                 {facture && (
                   <button
-                    onClick={() => {
-                      console.log('Facture saved:', facture);
-                      Swal.fire({
-                        icon: 'success',
-                        title: 'Facture saved!',
-                        text: 'Your facture has been saved successfully.',
-                        timer: 2000,
-                        showConfirmButton: false,
-                      });
-                    }}
+                    onClick={savePDFToServer}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors duration-300"
                   >
                     Save Facture

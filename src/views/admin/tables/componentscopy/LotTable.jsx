@@ -7,7 +7,6 @@ Modal.setAppElement('#root');
 const LotTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lots, setLots] = useState([]);
-  const [lots2, setLots2] = useState([]);
   const [depots, setDepots] = useState([]);
   const [stockMovements, setStockMovements] = useState([]);
   const [currentLot, setCurrentLot] = useState(null);
@@ -19,13 +18,13 @@ const LotTable = () => {
     DL_NoIn: '',
     DL_NoOut: '',
     LS_MvtStock: '',
-    DE_No: '' // This should be set to a valid Depot ID
+    DE_No: ''
   });
 
   useEffect(() => {
     fetchLots();
-    fetchDepots(); // Fetch depots when component mounts
-    fetchStockMovements(); // Fetch stock movements when component mounts
+    fetchDepots();
+    fetchStockMovements();
   }, []);
 
   const fetchLots = async () => {
@@ -34,24 +33,19 @@ const LotTable = () => {
       const response = await axios.get("http://localhost:5000/lots");
       console.log("Lots fetched:", response.data);
       
-      const updatedLots = await Promise.all(response.data.map(async (lot) => {
-        console.log(`Fetching stock for lot ${lot.id}...`);
-        const stockResponse = await axios.get(`http://localhost:5000/lots/stocks/lot/${lot.id}`);
-        console.log(`Stock for lot ${lot.id}:`, stockResponse.data);
+      const updatedLots = response.data.map(lot => {
+        const isLotExhausted = lot.stocks.every(stock => stock.productQuantity === 0);
         
-        const productQuantity = stockResponse.data.productQuantity;
-        const newLSLotEpuise = productQuantity <= 0 ? true : false;
-        
-        if (lot.LS_LotEpuise !== newLSLotEpuise) {
-          console.log(`Updating lot ${lot.id} LS_LotEpuise to ${newLSLotEpuise}`);
-          const updatedLot = await axios.put(`http://localhost:5000/lots/${lot.id}`, {
+        if (lot.LS_LotEpuise !== isLotExhausted) {
+          console.log(`Updating lot ${lot.id} LS_LotEpuise to ${isLotExhausted}`);
+          axios.put(`http://localhost:5000/lots/${lot.id}`, {
             ...lot,
-            LS_LotEpuise: newLSLotEpuise
+            LS_LotEpuise: isLotExhausted
           });
-          return { ...updatedLot.data, productQuantity };
         }
-        return { ...lot, productQuantity };
-      }));
+        
+        return { ...lot, LS_LotEpuise: isLotExhausted };
+      });
       
       console.log("Updated lots:", updatedLots);
       setLots(updatedLots);
@@ -93,7 +87,6 @@ const LotTable = () => {
         response = await axios.post("http://localhost:5000/lots", formData);
       }
       
-      // Update the local state with the response data
       setLots(prevLots => {
         if (currentLot) {
           return prevLots.map(lot => lot.id === response.data.id ? response.data : lot);
@@ -120,7 +113,6 @@ const LotTable = () => {
     }
   };
 
-
   const handleEditClick = (lot) => {
     setCurrentLot(lot);
     setFormData({
@@ -143,6 +135,19 @@ const LotTable = () => {
     } catch (error) {
       console.error("Error deleting lot:", error);
     }
+  };
+
+  const renderLotStatus = (lot) => {
+    const totalQuantity = lot.LS_Qte;
+    const usedQuantity = lot.stocks ? lot.stocks.reduce((sum, stock) => sum + stock.productQuantity, 0) : 0;
+    const availableQuantity = totalQuantity - usedQuantity;
+    const isSaturated = availableQuantity <= 0;
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs ${isSaturated ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+        {isSaturated ? 'Saturated' : 'Not Saturated'}
+      </span>
+    );
   };
 
   return (
@@ -179,6 +184,7 @@ const LotTable = () => {
               <th scope="col" className="px-6 py-3">Out No</th>
               <th scope="col" className="px-6 py-3">Stock Movement</th>
               <th scope="col" className="px-6 py-3">Depot No</th>
+              <th scope="col" className="px-6 py-3">Status</th>
               <th scope="col" className="px-6 py-3">Action</th>
             </tr>
           </thead>
@@ -203,21 +209,20 @@ const LotTable = () => {
               <td className="py-2 px-4 border-b">{lot.DL_NoOut}</td>
               <td className="py-2 px-4 border-b">{lot.LS_MvtStock}</td>
               <td className="py-2 px-4 border-b">{lot.DE_No}</td>
+              <td className="py-2 px-4 border-b">{renderLotStatus(lot)}</td>
               <td className="py-2 px-4 border-b">
-               <td className="px-6 py-4">
-                  <button
-                    onClick={() => handleEditClick(lot)}
-                    className="font-medium text-blue-600 hover:underline mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteLot(lot.id)}
-                    className="font-medium text-red-600 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </td>
+                <button
+                  onClick={() => handleEditClick(lot)}
+                  className="font-medium text-blue-600 hover:underline mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteLot(lot.id)}
+                  className="font-medium text-red-600 hover:underline"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
@@ -236,7 +241,7 @@ const LotTable = () => {
           {currentLot ? "Edit Lot" : "Add Lot"}
         </h2>
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+        <div className="mb-4">
             <label htmlFor="Name_Lot" className="block text-sm font-medium text-gray-700">Name Lot</label>
             <input
               type="text"

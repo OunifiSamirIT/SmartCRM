@@ -27,7 +27,30 @@ const locationCoordinates = {
   'India': [20, 77],
   'Canada': [56, -106],
   'Russia': [60, 100],
-  // Add more countries or locations as needed
+
+  "Sfax": [34.739, 10.7603],
+  "Sousse": [35.8256, 10.636],
+  "Gabès": [33.8815, 10.0982],
+  "Kairouan": [35.6781, 10.0963],
+  "Bizerte": [37.2746, 9.8642],
+  "Monastir": [35.7771, 10.8268],
+  "Medenine": [33.3549, 10.5055],
+  "Gafsa": [34.425, 8.7842],
+  "Kasserine": [35.1676, 8.8323],
+  "Tozeur": [33.9197, 8.1335],
+  "Nabeul": [36.4514, 10.7353],
+  "Zaghouan": [36.4029, 10.1439],
+  "Mahdia": [35.5047, 11.0622],
+  "Sidi Bouzid": [35.0387, 9.4846],
+  "Beja": [36.7331, 9.184],
+  "Jendouba": [36.5011, 8.7796],
+  "Kef": [36.174, 8.7043],
+  "Siliana": [36.084, 9.3708],
+  "Manouba": [36.8082, 10.0963],
+  "Ariana": [36.8666, 10.1647],
+  "Ben Arous": [36.7543, 10.2337],
+  "Tataouine": [32.9297, 10.4518],
+  "Djerba": [33.8116, 10.8632],
 };
 
 const DepotTable = () => {

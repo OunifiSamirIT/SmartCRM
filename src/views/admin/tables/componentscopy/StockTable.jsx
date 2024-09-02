@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Modal from "react-modal";
 import { FaArrowDown, FaArrowUp, FaExclamationTriangle } from 'react-icons/fa';
-
 import { motion } from 'framer-motion';
 import Swal from "sweetalert2";
+
 Modal.setAppElement('#root');
 
 const StockTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [stocks, setStocks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [fournisseurs, setFournisseurs] = useState([]);
@@ -17,12 +16,11 @@ const StockTable = () => {
   const [depots, setDepots] = useState([]);
   const [productsByStock, setProductsByStock] = useState({});
   const [currentStock, setCurrentStock] = useState(null);
-  const [currentProducts, setCurrentProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLot, setSelectedLot] = useState(null);
   const [formData, setFormData] = useState({
     stockName: '',
     categorieId: '',
-    maxQuantityStock: '',  // Add this line
+    maxQuantityStock: '',
     fournisseurId: '',
     lotId: '',
     DepotId: ''
@@ -45,11 +43,7 @@ const StockTable = () => {
       const productsResponses = await Promise.all(productsPromises);
       const productsByStock = productsResponses.reduce((acc, response, index) => {
         const stockId = response.config.url.split('/')[4];
-        const products = response.data.map(product => ({
-          ...product,
-          quantityInStock: response.data.find(p => p.id === product.id).QuantiteProduct
-        }));
-        acc[stockId] = products;
+        acc[stockId] = response.data;
         return acc;
       }, {});
       setProductsByStock(productsByStock);
@@ -88,13 +82,56 @@ const StockTable = () => {
       console.error("Error fetching depots:", error);
     }
   };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleLotChange = async (e) => {
+    const lotId = e.target.value;
+    setFormData({ ...formData, lotId });
+
+    if (lotId) {
+      try {
+        const response = await axios.get(`http://localhost:5000/lots/${lotId}`);
+        setSelectedLot(response.data);
+      } catch (error) {
+        console.error("Error fetching lot information:", error);
+      }
+    } else {
+      setSelectedLot(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (selectedLot) {
+      const lotQuantity = selectedLot.LS_Qte;
+      const maxQuantity = parseInt(formData.maxQuantityStock);
+
+      if (maxQuantity > lotQuantity) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Quantity',
+          text: `The maximum quantity (${maxQuantity}) exceeds the available quantity in the lot (${lotQuantity}).`,
+        });
+        return;
+      }
+
+      const stocksInLot = stocks.filter(stock => stock.lotId === parseInt(formData.lotId));
+      const totalStockQuantity = stocksInLot.reduce((sum, stock) => sum + stock.productQuantity, 0);
+      if (totalStockQuantity + maxQuantity > lotQuantity) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Lot Capacity Exceeded',
+          text: 'Adding this stock would exceed the lot capacity. Please choose a different lot or adjust the quantity.',
+        });
+        return;
+      }
+    }
+
     try {
       const dataToSubmit = {
         ...formData,
@@ -117,6 +154,7 @@ const StockTable = () => {
         DepotId: ''
       });
       setCurrentStock(null);
+      setSelectedLot(null);
 
       Swal.fire({
         icon: 'success',
@@ -133,7 +171,6 @@ const StockTable = () => {
     }
   };
 
-
   const handleEditClick = (stock) => {
     setCurrentStock(stock);
     setFormData({
@@ -147,7 +184,6 @@ const StockTable = () => {
     setIsModalOpen(true);
   };
 
-
   const handleDeleteStock = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/stocks/${id}`);
@@ -157,15 +193,14 @@ const StockTable = () => {
     }
   };
 
-
   const calculateTotals = (products) => {
     return products.reduce((acc, product) => ({
       totalQuantity: acc.totalQuantity + product.QuantiteProduct,
       totalInStock: acc.totalInStock + product.QuantiteProductAvalible
     }), { totalQuantity: 0, totalInStock: 0 });
   };
- 
-  const renderStockHeader = (stock, totalQuantity, totalInStock, lots) => {
+
+  const renderStockHeader = (stock, totalQuantity, totalInStock) => {
     const associatedLot = lots.find(lot => lot.id === stock.lotId);
     const isExhausted = associatedLot ? associatedLot.LS_LotEpuise : false;
 
@@ -185,21 +220,21 @@ const StockTable = () => {
         <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full mb-2">
           Available In Stock: {totalInStock}
         </span>
-        {isExhausted && (
+        {/* {isExhausted && (
           <motion.span 
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 0.5, repeat: Infinity }}
             className="bg-red-100 text-red-800 text-sm font-medium px-3 py-1 rounded-full flex items-center mb-2"
           >
             <FaExclamationTriangle className="mr-2" />
-            Lot Exhausted
+            Lot Saturated
           </motion.span>
-        )}
+        )} */}
       </motion.div>
     );
   };
 
-  const renderProductsTable = (products, stock) => {
+  const renderProductsTable = (products) => {
     return (
       <motion.table 
         initial={{ opacity: 0 }}
@@ -301,7 +336,7 @@ const StockTable = () => {
                 <td className="px-6 py-4">{stock.productQuantity}</td>
                 <td className="px-6 py-4">{stock.fournisseurId}</td>
                 <td className="px-6 py-4">{lots.find(lot => lot.id === stock.lotId)?.Name_Lot}</td>
-      <td className="px-6 py-4">{depots.find(depot => depot.id === stock.DepotId)?.name}</td>
+                <td className="px-6 py-4">{depots.find(depot => depot.id === stock.DepotId)?.name}</td>
                 <td className="px-6 py-4">
                   <button
                     onClick={() => handleEditClick(stock)}
@@ -335,9 +370,9 @@ const StockTable = () => {
               transition={{ duration: 0.5 }}
               className="bg-white p-6 rounded-lg shadow-lg"
             >
-              {renderStockHeader(stock, totalQuantity, totalInStock, lots)}
+              {renderStockHeader(stock, totalQuantity, totalInStock)}
               {products.length > 0 
-                ? renderProductsTable(products, stock) 
+                ? renderProductsTable(products) 
                 : <p className="text-gray-500 text-center py-4">No products available</p>
               }
             </motion.div>
@@ -345,7 +380,7 @@ const StockTable = () => {
         })}
       </div>
 
-      <Modal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)}>
+      <Modal className="pl-40 bg-white mt-24 ml-32" isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)}>
         <h2 className="text-xl font-bold mb-4">{currentStock ? "Edit Stock" : "Add Stock"}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -374,7 +409,6 @@ const StockTable = () => {
               ))}
             </select>
           </div>
-        
           <div className="mb-4">
             <label className="block text-gray-700">Max Quantity:</label>
             <input
@@ -406,7 +440,7 @@ const StockTable = () => {
             <select
               name="lotId"
               value={formData.lotId}
-              onChange={handleChange}
+              onChange={handleLotChange}
               className="mt-1 block w-full border border-gray-300 rounded p-2"
               required
             >
@@ -416,6 +450,13 @@ const StockTable = () => {
               ))}
             </select>
           </div>
+          {selectedLot && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                Available Quantity in Lot: {selectedLot.LS_Qte}
+              </p>
+            </div>
+          )}
           <div className="mb-4">
             <label className="block text-gray-700">Depot:</label>
             <select
